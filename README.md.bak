@@ -1,0 +1,113 @@
+# 3 tier application
+
+| | |
+| --- | --- |
+| Architecture | [Diagram in draw.io](images/3tier-arch.png) |
+| Implementation | https://github.ibm.com/portfolio-solutions/scenario-3tier |
+| Implementation Status | :construction: In Progress |
+| Implementation Owner | Powell Quiring / [@pquiring on slack](https://github.ibm.com/pquiring/) |
+
+An iteration of a demo scenario to showcase current state of a three tier application.
+
+## Introduction
+
+This scenario demonstrate the technology investigation phase of a new corporate customer.  Customer is a hot lead with reasonable chance of conversion. "Charles" the CTO asked "Ivan" the Investigator to look into the IBM cloud.  Ivan will determine if IBM is a no go.  He has taken a look at the basic service offerings and found that the services like databases, AI, object storage, etc are likely good enough to meet requirements.  He has also verified that the MZR regional coverage map that IBM provides is sufficient. 
+
+Personas:
+- Ivan the investigator (focus of this scenario)
+- Charles the CTO
+
+Ivan will take a narrow look at an example cloud native three tier application prototype in an effort to eliminate IBM and go to one of the bigger less risky competitors like AWS or Azure.
+- Cloud console will be used to explore, learn and verify
+- Infrastructure as Code and the command line will be used express the three tier prototype
+- All of the services will be configured following corporate best practices for privacy
+- COS is an example of a cloud native service
+- Postgresql is expected to work normally
+- Infrastructure as a Service (IAAS) networking and compute is expected to perform similar to competition
+- Tests to verify working of the system
+
+
+## Architecture
+
+![arch](images/3tier-arch.png) |
+
+## Follow on investigation
+The scope of the prototype is one week. The following additional work will be postponed.  Ivan will be thinking ahead and notice any show stoppers but not implement the following:
+- VPN and Direct Link will not be used for development (desktop over internet)
+- VPN and Direct Link will not be used for prototype users (desktop/phone over internet)
+- COS bucket for static content
+- VPC separation for team based development
+- Account separation for team based development
+- Dev, stage, production environments
+- Image construction automation will not be used (stock images with cloud-init user_data for code will be used)
+- Autoscaling
+- DNS with custom domain names
+- Firewall controlling application and data access from on prem, DOS, ...
+- Expense tracking, although anything out of the ordinary like high/low bandwidth costs or missing PAYGO will be noticed
+- CI/CD automation
+
+## Requirements from Enterprise principles
+
+### Protect the Data
+
+- All connectivity within the IBM cloud will be private (VPE expected)
+- All persisted data will be encrypted using Key Protect.  This includes application data, logs, etc
+- All data in flight will be verified to be tls/https.  Investigation may not include implementation due to lack of time and the desire to avoid getting too deep into services like CIS, Certificate Manager, ...  Documentation for the services will be investigated and compared to competition.  Nothing should be missing or more complicated.
+
+### Monitor & Troubleshoot
+
+- Activity Tracker will be validated for the ability to audit final system (cursory investigation)
+- Logging service will be used for the application
+- Platform logging for services used by the application must support predicted problem diagnosis
+- Metrics for application and associated VSI will be exaimined to produce a dashboard and diagnose problems
+- Platform Metrics for services used by the application must support predicted problem diagnosis
+- VPC Flow logs will be exaimined to determine if it is possible to diagnose problems
+
+### IAM
+
+Time constraints will limit the amount of IAM implementation (see "Not in architecture" section above).  But the UI and docs will be studied and verified that it will be possible to separate users and processes to implement principle of least access.
+
+- Execution environment, VSI execution will be enabled using IAM
+- Rotation of statically allocated keys will be exercised, zero downtime expected (or competition equivalent)
+
+### Automation and IaC
+
+- Terraform provider is available for prototype closure
+- Terraform service for shared usage (Schematics) works as expected
+- cli access to prototype closure
+- Python SDK for some automation will be implementted (other languages are assumed to work similarly)
+
+### Implementation
+- Python SDK for exercising IBM native services, like COS, will be used (golang, java, ... will be assumed to work similarly)
+- Docs, blogs, etc required to implement the prototype will be searched and compared to competition
+
+### Miscellaneous
+- Provision performance compared to compeititors
+- Expense will be compared to competitors - expecting PAYGO
+
+## Architecture deeper dive
+### Instance Logging
+![instance-logging](images/3tier-instance-logging.png)
+
+1. IAM Trusted identity for the instance has been initialized and provided access to the secrets manager
+1. Secrets manager is accessed to get the log analysis ingestion key
+1. IBM logging agent is provided the ingestion key for instane and application logging
+
+## Assessment
+### Services
+Each of the services for the scenario will be exaimined.  Integration points will be investigated.  Expecting no incompatibilities and a lot of consistency allowing me to easily switch between services.
+
+  >~Service v~Requirement| Secrets Manager | VPC | Key Protect | IAM | COS | Cloud database for postgresql | Logging | Metrics | Activity Tracker
+-|-|-|-|-|-|-|-|-|-
+Terraform | ? | ? | ? | ? | ? | ? | ? | ? | ?
+SDK | ? | ? | ? | ? | ? | ? | ? | ? | ?
+CLI | ? | ? | ? | ? | ? | ? | ? | ? | ?
+Activity Tracker | ? | ? | ? | ? | ? | ? | ? | ? | ?
+Platform Logs | ? | ? | ? | ? | ? | ? | ? | ? | ?
+Platform Monitoring | ? | ? | ? | ? | ? | ? | ? | ? | ?
+VPE | ? | ? | ? | ? | ? | ? | ? | ? | ?
+Key Protect | ? | ? | ? | ? | ? | ? | ? | ? | ?
+
+### Notes
+- application logging ingestion key rotation compared to AWS - downtime required?
+- example for each of the components, or a 3 tier app, or lbaas configuration - for prototyping it would be good to find some stuff that overlaps with the scenario.  Close fit is not required - I want to understand all of the technology - make it my own
