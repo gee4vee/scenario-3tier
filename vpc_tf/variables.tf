@@ -1,7 +1,12 @@
-variable "ibmcloud_api_key" {}
-variable "basename" {}
-variable "ssh_key_name" {}
-variable "resource_group_name" {}
+variable "basename" {
+  default = "pfq3"
+}
+variable "ssh_key_name" {
+  default = "pfq"
+}
+variable "resource_group_name" {
+  default = "default"
+}
 variable "region" {
   default = "us-south"
 }

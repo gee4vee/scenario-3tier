@@ -29,3 +29,4 @@ venv
 postgresql.json
 cert
 generated_key_rsa
+providers.tf

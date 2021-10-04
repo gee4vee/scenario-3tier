@@ -49,6 +49,8 @@ locals {
     "basename:${var.basename}",
     replace("dir:${abspath(path.root)}", "/", "_"),
   ]
+  tags_front = concat(local.tags, ["instance:front"])
+  tags_back = concat(local.tags, ["instance:back"])
   resource_group = data.ibm_resource_group.group.id
   cidr           = "10.0.0.0/8"
   prefixes = { for zone_number in range(3) : zone_number => {
@@ -105,6 +107,8 @@ resource "ibm_is_subnet" "back" {
   ipv4_cidr_block = each.value.cidr
 }
 
+/*
+# TODO no load balancer
 resource "ibm_is_lb" "front" {
   name           = "${local.name}-front"
   subnets        = [for subnet in ibm_is_subnet.front : subnet.id]
@@ -118,6 +122,8 @@ resource "ibm_is_lb" "back" {
   type           = "private"
   resource_group = local.resource_group
 }
+# TODO no load balancer
+*/
 
 resource "ibm_is_security_group_rule" "inbound_myip" {
   group     = ibm_is_vpc.location.default_security_group
@@ -139,8 +145,8 @@ resource "ibm_is_security_group_rule" "inbound_8000" {
 }
 
 locals {
-  user_data0 = file("${path.module}/user_data.sh")
-  user_data  = replace(replace(local.user_data0, "__MAIN_PY__", file("${path.module}/../app/main.py")), "__POSTGRESQL_PY__", file("${path.module}/../app/postgresql.py"))
+  # TODO user_data0 = file("${path.module}/user_data.sh")
+  # TODO user_data  = replace(replace(local.user_data0, "__MAIN_PY__", file("${path.module}/../app/main.py")), "__POSTGRESQL_PY__", file("${path.module}/../app/postgresql.py"))
 }
 
 #################### front ################
@@ -156,10 +162,12 @@ resource "ibm_is_instance" "front" {
   primary_network_interface {
     subnet = each.value.id
   }
-  user_data = replace(replace(local.user_data, "__FRONT_BACK__", "front"), "__REMOTE_URL__", "http://${ibm_is_lb.back.hostname}:8000")
-  tags      = local.tags
+  # TODO LB user_data = replace(replace(local.user_data, "__FRONT_BACK__", "front"), "__REMOTE_URL__", "http://${ibm_is_lb.back.hostname}:8000")
+  tags      = local.tags_front
 }
 
+/*
+# TODO no load balancer
 resource "ibm_is_lb_pool" "front" {
   lb                  = ibm_is_lb.front.id
   name                = "front"
@@ -191,6 +199,8 @@ resource "ibm_is_lb_pool_member" "front" {
 output "lb_front" {
   value = "http://${ibm_is_lb.front.hostname}:8000"
 }
+# TODO no load balancer
+*/
 
 resource "ibm_is_floating_ip" "front" {
   for_each       = ibm_is_instance.front
@@ -211,14 +221,17 @@ output "instances_front" {
 
 #################### back ################
 locals {
-  postgresql_credentials = jsonencode(nonsensitive(ibm_resource_key.postgresql.credentials))
-  user_data_back         = replace(replace(replace(local.user_data, "__FRONT_BACK__", "back"), "__REMOTE_URL__", ""), "__POSTGRESQL_CREDENTIALS__", local.postgresql_credentials)
+  # TODO postgresql_credentials = jsonencode(nonsensitive(ibm_resource_key.postgresql.credentials))
+  # TODO user_data_back         = replace(replace(replace(local.user_data, "__FRONT_BACK__", "back"), "__REMOTE_URL__", ""), "__POSTGRESQL_CREDENTIALS__", local.postgresql_credentials)
 }
 
+/*
+# TODO
 resource "local_file" "postgresql" {
   content  = local.postgresql_credentials
   filename = "${path.module}/../app/postgresql.json"
 }
+*/
 
 resource "ibm_is_instance" "back" {
   for_each       = ibm_is_subnet.back
@@ -232,10 +245,12 @@ resource "ibm_is_instance" "back" {
   primary_network_interface {
     subnet = each.value.id
   }
-  user_data = local.user_data_back
-  tags      = local.tags
+  # TODO user_data = local.user_data_back
+  tags      = local.tags_back
 }
 
+/*
+# TODO no load balancer
 resource "ibm_is_lb_pool" "back" {
   lb                  = ibm_is_lb.back.id
   name                = "back"
@@ -267,6 +282,8 @@ resource "ibm_is_lb_pool_member" "back" {
 output "lb_back" {
   value = "http://${ibm_is_lb.back.hostname}:8000"
 }
+# TODO no load balancer
+*/
 
 resource "ibm_is_floating_ip" "back" {
   for_each       = ibm_is_instance.back

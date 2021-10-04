@@ -1,3 +1,5 @@
+/*--------------------------------------------------------------------------------
+# TODO
 resource "ibm_database" "postgresql" {
   name              = local.name
   resource_group_id = local.resource_group
@@ -19,6 +21,7 @@ output "postgresql" {
   value     = ibm_database.postgresql
   sensitive = true
 }
+--------------------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------------------
 # TODO integrate with KMS
