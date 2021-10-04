@@ -29,4 +29,5 @@ venv
 postgresql.json
 cert
 generated_key_rsa
+.terraform.tfstate.lock.info
 providers.tf
