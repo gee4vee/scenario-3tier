@@ -300,3 +300,39 @@ output "instances_back" {
     fip                  = ibm_is_floating_ip.back[key].address
   } }
 }
+
+locals {
+  bastion_subnet = ibm_is_subnet.front[0]
+}
+resource "ibm_is_instance" "bastion" {
+  name           = "bastion"
+  vpc            = local.bastion_subnet.vpc
+  zone           = local.bastion_subnet.zone
+  keys           = local.ssh_key_ids
+  image          = local.image_id
+  profile        = var.profile
+  resource_group = local.resource_group
+  primary_network_interface {
+    subnet = local.bastion_subnet.id
+  }
+  tags      = local.tags
+}
+resource "ibm_is_floating_ip" "bastion" {
+  name           = ibm_is_instance.bastion.name
+  target         = ibm_is_instance.bastion.primary_network_interface[0].id
+  resource_group = local.resource_group
+  tags           = local.tags
+}
+
+
+output "bastion" {
+  value = {
+    name                 = ibm_is_instance.bastion.name
+    primary_ipv4_address = ibm_is_instance.bastion.primary_network_interface[0].primary_ipv4_address
+    fip                  = ibm_is_floating_ip.bastion.address
+  }
+}
+
+output ssh_key {
+  value = nonsensitive(tls_private_key.ssh.private_key_pem)
+}
