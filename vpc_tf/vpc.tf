@@ -305,7 +305,7 @@ locals {
   bastion_subnet = ibm_is_subnet.front[0]
 }
 resource "ibm_is_instance" "bastion" {
-  name           = "bastion"
+  name           = "${local.name}-bastion"
   vpc            = local.bastion_subnet.vpc
   zone           = local.bastion_subnet.zone
   keys           = local.ssh_key_ids
